@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres
+    container_name: studenthub_postgres
+    restart: always
+    ports:
+      - '5432:5432'
+    command: ["postgres", "-c", "logging_collector=on", "-c", "log_statement=all"]
+    volumes:
+      - /root/task/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql
+      - studenthub_pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=studentdb
+      - POSTGRES_USER=studentuser
+      - POSTGRES_PASSWORD=studentpass
+    networks:
+      - studenthub_net
+
+  fastapi:
+    build:
+      context: /root/task
+      dockerfile: Dockerfile
+    container_name: studenthub_fastapi
+    depends_on:
+      - db
+    ports:
+      - '8000:8000'
+    volumes:
+      - /root/task/app:/root/task/app
+    networks:
+      - studenthub_net
+
+volumes:
+  studenthub_pgdata:
+
+networks:
+  studenthub_net:
